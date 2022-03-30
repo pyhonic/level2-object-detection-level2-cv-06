@@ -49,9 +49,9 @@ def main(args):
             else:
                 val_dict['annotations'].append(annotation)
 
-        with open(os.path.join(save_path, f"train_{fold}.json"), 'w') as train_file:
+        with open(os.path.join(save_path, f"train_{fold+1}.json"), 'w') as train_file:
             json.dump(train_dict, train_file)
-        with open(os.path.join(save_path, f"val_{fold}.json"), 'w') as val_file:
+        with open(os.path.join(save_path, f"val_{fold+1}.json"), 'w') as val_file:
             json.dump(val_dict, val_file)
         
 
