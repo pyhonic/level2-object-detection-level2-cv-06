@@ -6,9 +6,7 @@ import argparse
 import pandas as pd
 import numpy as np
 
-from tqdm import tqdm
-
-from ensemble_boxes import *
+from ensemble_boxes import weighted_boxes_fusion
 from pycocotools.coco import COCO
 
 
@@ -28,7 +26,7 @@ def main(args):
     with open(anno_test, 'r') as test_json:
         test_data = json.loads(test_json.read())
         test_img = test_data['images']
-
+    
     pseudo_dict = {
         'info': train_data['info'].copy(),
         'licenses': train_data['licenses'].copy(),
@@ -42,14 +40,13 @@ def main(args):
 
     df = pd.read_csv(csv_path)
 
-
     predictions = df['PredictionString'].tolist()
     image_ids = df['image_id'].tolist()    
     
     anno_list = []
     img_list = []
 
-    for idx, image_id in tqdm(enumerate(image_ids)):
+    for idx, image_id in enumerate(image_ids):
         boxes_list = []
         scores_list = []
         labels_list = []
@@ -78,8 +75,8 @@ def main(args):
             boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list, labels_list, weights=None, iou_thr=iou_thr, skip_box_thr=conf_thr)
 
             for box, score, label in zip(boxes, scores, labels):
-                x_min, y_min = box[0] * image_info['height'], box[1] * image_info['width']
-                width, height = (box[2] - box[0]) * image_info['height'], (box[3] - box[1]) * image_info['width']
+                x_min, y_min = round(box[0] * image_info['width'], 1), round(box[1] * image_info['height'], 1)
+                width, height = round((box[2] - box[0]) * image_info['width'], 1), round((box[3] - box[1]) * image_info['height'], 1)
                 anno_list.append({
                     'image_id': image_count,
                     'category_id': int(label),
@@ -112,7 +109,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_path', type=str, default='/opt/ml/detection/dataset/')
     parser.add_argument('--anno_train', type=str, default='/opt/ml/detection/dataset/train.json')
     parser.add_argument('--anno_test', type=str, default='/opt/ml/detection/dataset/test.json')
-    parser.add_argument('--conf_threshold', type=float, default=0.3)
+    parser.add_argument('--conf_threshold', type=float, default=0.5)
     parser.add_argument('--iou_threshold', type=float, default=0.5)
 
     args = parser.parse_args()
