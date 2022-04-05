@@ -6,7 +6,9 @@ import argparse
 import pandas as pd
 import numpy as np
 
-from ensemble_boxes import weighted_boxes_fusion
+from tqdm import tqdm
+
+from ensemble_boxes import *
 from pycocotools.coco import COCO
 
 
@@ -40,13 +42,12 @@ def main(args):
 
     df = pd.read_csv(csv_path)
 
-    predictions = df['PredictionString'].tolist()
-    image_ids = df['image_id'].tolist()    
+    predictions = df['PredictionString'].tolist() 
     
     anno_list = []
     img_list = []
 
-    for idx, image_id in enumerate(image_ids):
+    for idx in range(len(df)):
         boxes_list = []
         scores_list = []
         labels_list = []
@@ -59,7 +60,6 @@ def main(args):
 
         prediction_list = np.reshape(prediction_list, (-1, 6))
         box_list = []
-        
         for box in prediction_list[:, 2:6].tolist():
             box[0] = float(box[0]) / image_info['width']
             box[1] = float(box[1]) / image_info['height']
@@ -75,32 +75,31 @@ def main(args):
             boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list, labels_list, weights=None, iou_thr=iou_thr, skip_box_thr=conf_thr)
 
             for box, score, label in zip(boxes, scores, labels):
+                if score < conf_thr:
+                    continue
                 x_min, y_min = round(box[0] * image_info['width'], 1), round(box[1] * image_info['height'], 1)
                 width, height = round((box[2] - box[0]) * image_info['width'], 1), round((box[3] - box[1]) * image_info['height'], 1)
                 anno_list.append({
                     'image_id': image_count,
                     'category_id': int(label),
                     'area': width * height,
-                    "bbox": [x_min, y_min, width, height],
+                    'bbox': [x_min, y_min, width, height],
                     'iscrowd': 0,
                     'id': anno_count
                 })
                 anno_count += 1
-
-            image_dict = {
-                key:value for key, value in image_info.items()
-            }
-            image_dict['id'] = image_count
-            img_list.append(image_dict)
+            
+            image_info['id'] = image_count 
+            img_list.append(image_info)
             image_count += 1
 
-        pseudo_dict['images'].extend(img_list)
-        pseudo_dict['annotations'].extend(anno_list)
+    pseudo_dict['images'].extend(img_list)
+    pseudo_dict['annotations'].extend(anno_list)
 
-    with open(os.path.join(save_path, 'temp.json'), 'w') as f:
-        json.dump(pseudo_dict, f)
-
-
+    with open(os.path.join(save_path, 'pseudoTrain.json'), 'w') as f:
+        json.dump(pseudo_dict, f, indent=2, sort_keys=True)
+    
+    print("Finished")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
