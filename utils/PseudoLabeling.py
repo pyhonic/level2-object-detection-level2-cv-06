@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import copy
 
@@ -19,6 +20,7 @@ def main(args):
     csv_path = args.csv_file
     iou_thr = args.iou_threshold
     conf_thr = args.conf_threshold
+    is_fold = True if re.search('[0-9]', anno_train.split('/')[-1]) else False
 
     with open(anno_train, 'r') as train_json:
         train_data = json.loads(train_json.read())
@@ -37,8 +39,8 @@ def main(args):
         'annotations': train_anno.copy()
     }
 
-    anno_count = len(train_anno)
-    image_count = len(train_img)
+    anno_count = 23144 if is_fold else len(train_anno)
+    image_count = 4883 if is_fold else len(train_img)
 
     df = pd.read_csv(csv_path)
 
@@ -96,17 +98,17 @@ def main(args):
     pseudo_dict['images'].extend(img_list)
     pseudo_dict['annotations'].extend(anno_list)
 
-    with open(os.path.join(save_path, 'pseudoTrain.json'), 'w') as f:
+    with open(os.path.join(save_path, 'yoloxTrain.json'), 'w') as f:
         json.dump(pseudo_dict, f, indent=2, sort_keys=True)
     
     print("Finished")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--csv_file', type=str, default='/opt/ml/detection/EDA/output.csv',
+    parser.add_argument('--csv_file', type=str, default='/opt/ml/detection/EDA/output_yolo.csv',
                         help='csv file path')
     parser.add_argument('--save_path', type=str, default='/opt/ml/detection/dataset/')
-    parser.add_argument('--anno_train', type=str, default='/opt/ml/detection/dataset/train.json')
+    parser.add_argument('--anno_train', type=str, default='/opt/ml/detection/dataset/train_1.json')
     parser.add_argument('--anno_test', type=str, default='/opt/ml/detection/dataset/test.json')
     parser.add_argument('--conf_threshold', type=float, default=0.5)
     parser.add_argument('--iou_threshold', type=float, default=0.5)
