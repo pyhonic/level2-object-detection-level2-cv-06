@@ -1,6 +1,10 @@
+_base_ = [
+    '../_base_/datasets/coco_detection.py',
+    '../_base_/schedules/schedule_1x.py', '../_base_/default_runtime.py'
+]
 # model settings
 model = dict(
-    type='CascadeRCNN',
+    type='HybridTaskCascade',
     backbone=dict(
         type='ResNet',
         depth=50,
@@ -23,7 +27,7 @@ model = dict(
         anchor_generator=dict(
             type='AnchorGenerator',
             scales=[8],
-            ratios=[0.3, 0.5, 0.7, 1.0, 1.5, 2.0],
+            ratios=[0.5, 1.0, 2.0],
             strides=[4, 8, 16, 32, 64]),
         bbox_coder=dict(
             type='DeltaXYWHBBoxCoder',
@@ -33,7 +37,9 @@ model = dict(
             type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
         loss_bbox=dict(type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0)),
     roi_head=dict(
-        type='CascadeRoIHead',
+        type='HybridTaskCascadeRoIHead',
+        interleaved=True,
+        mask_info_flow=False,
         num_stages=3,
         stage_loss_weights=[1, 0.5, 0.25],
         bbox_roi_extractor=dict(
@@ -92,7 +98,41 @@ model = dict(
                     use_sigmoid=False,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0))
-        ]),
+        ]
+        # ,
+        # mask_roi_extractor=dict(
+        #     type='SingleRoIExtractor',
+        #     roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
+        #     out_channels=256,
+        #     featmap_strides=[4, 8, 16, 32]),
+        # mask_head=[
+        #     dict(
+        #         type='HTCMaskHead',
+        #         with_conv_res=False,
+        #         num_convs=4,
+        #         in_channels=256,
+        #         conv_out_channels=256,
+        #         num_classes=10,
+        #         loss_mask=dict(
+        #             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
+        #     dict(
+        #         type='HTCMaskHead',
+        #         num_convs=4,
+        #         in_channels=256,
+        #         conv_out_channels=256,
+        #         num_classes=10,
+        #         loss_mask=dict(
+        #             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
+        #     dict(
+        #         type='HTCMaskHead',
+        #         num_convs=4,
+        #         in_channels=256,
+        #         conv_out_channels=256,
+        #         num_classes=10,
+        #         loss_mask=dict(
+        #             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
+        # ]
+        ),
     # model training and testing settings
     train_cfg=dict(
         rpn=dict(
@@ -101,7 +141,6 @@ model = dict(
                 pos_iou_thr=0.7,
                 neg_iou_thr=0.3,
                 min_pos_iou=0.3,
-                match_low_quality=True,
                 ignore_iof_thr=-1),
             sampler=dict(
                 type='RandomSampler',
@@ -124,7 +163,6 @@ model = dict(
                     pos_iou_thr=0.5,
                     neg_iou_thr=0.5,
                     min_pos_iou=0.5,
-                    match_low_quality=False,
                     ignore_iof_thr=-1),
                 sampler=dict(
                     type='RandomSampler',
@@ -132,6 +170,7 @@ model = dict(
                     pos_fraction=0.25,
                     neg_pos_ub=-1,
                     add_gt_as_proposals=True),
+                mask_size=28,
                 pos_weight=-1,
                 debug=False),
             dict(
@@ -140,7 +179,6 @@ model = dict(
                     pos_iou_thr=0.6,
                     neg_iou_thr=0.6,
                     min_pos_iou=0.6,
-                    match_low_quality=False,
                     ignore_iof_thr=-1),
                 sampler=dict(
                     type='RandomSampler',
@@ -148,6 +186,7 @@ model = dict(
                     pos_fraction=0.25,
                     neg_pos_ub=-1,
                     add_gt_as_proposals=True),
+                mask_size=28,
                 pos_weight=-1,
                 debug=False),
             dict(
@@ -156,7 +195,6 @@ model = dict(
                     pos_iou_thr=0.7,
                     neg_iou_thr=0.7,
                     min_pos_iou=0.7,
-                    match_low_quality=False,
                     ignore_iof_thr=-1),
                 sampler=dict(
                     type='RandomSampler',
@@ -164,6 +202,7 @@ model = dict(
                     pos_fraction=0.25,
                     neg_pos_ub=-1,
                     add_gt_as_proposals=True),
+                mask_size=28,
                 pos_weight=-1,
                 debug=False)
         ]),
@@ -174,6 +213,26 @@ model = dict(
             nms=dict(type='nms', iou_threshold=0.7),
             min_bbox_size=0),
         rcnn=dict(
-            score_thr=0.05,
+            score_thr=0.001,
             nms=dict(type='nms', iou_threshold=0.5),
-            max_per_img=100)))
+            max_per_img=100,
+            mask_thr_binary=0.5)))
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip', flip_ratio=0.5),
+            dict(type='Normalize', **img_norm_cfg),
+            dict(type='Pad', size_divisor=32),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img']),
+        ])
+]
+data = dict(
+    val=dict(pipeline=test_pipeline), test=dict(pipeline=test_pipeline))

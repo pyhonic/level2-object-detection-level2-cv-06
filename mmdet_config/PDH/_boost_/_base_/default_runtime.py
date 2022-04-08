@@ -5,7 +5,16 @@ log_config = dict(
     hooks=[
         dict(type='TextLoggerHook'),
         # dict(type='TensorboardLoggerHook')
-    ])
+        
+        dict(type='WandbLoggerHook',
+            interval=1000,
+            init_kwargs=dict(
+            entity = 'omakase06', # 설정 따로 안 해도 됨
+            project='PDH', # 이름
+            name = 'cascade_swin_800' # 실험제목
+            ))
+    ],
+)
 # yapf:enable
 custom_hooks = [dict(type='NumClassCheckHook')]
 
