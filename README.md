@@ -1,10 +1,10 @@
-# 오마카세 
+# 🍣 오마카세 
 ![image](https://user-images.githubusercontent.com/91659448/164386988-ddda3bd7-214c-4212-b657-c2fe42975d52.png)
 - 대회 기간 : 2022.03.21 ~ 2022.04.08
 - 목적 : 재활용 품목 분류를 위한 Object Detection
 
 ## ♻️ 재활용 품목 분류를 위한 Object Detection
-### 🔎배경
+### 🔎 배경
 ![image](https://user-images.githubusercontent.com/91659448/164387063-c84ae185-257c-4b90-8015-366cbe22a05d.png)
 
 - 코로나19가 확산됨에 따라 언택트 시대가 도래하였습니다.
@@ -14,7 +14,7 @@
 - 잘 분리배출 된 쓰레기는 자원으로서 가치를 인정 받아 재활용 되지만 그렇지 않은 경우는 폐기물로 분류되어 매립 또는 소각되기 떄문입니다.
 - 따라서 우리는 사진에서 쓰레기를 Detection 하는 모델을 만들어 이러한 문제점을 해결해보고자 합니다. 
 
-### 💾데이터 셋
+### 💾 데이터 셋
 - 전체 이미지 개수 : 9754장 (train 4883 장, test 4871 장)
 - 10개 클래스 : General trash, Paper, Paper pack, Metal, Glass, Plastic, Styrofoam, Plastic bag, Battery, Clothing
 - 이미지 크기 : (1024, 1024)
