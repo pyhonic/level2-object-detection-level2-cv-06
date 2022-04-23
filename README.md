@@ -2,7 +2,7 @@
 
 ## Train
 ```
-$ python python swin_train.py \
+$ python swin_train.py \
     --base_path [model 경로] --data_dir [data 경로] \
     --config_file [config 경로] --n_fold [CV 경로] \
     -- resume_from [resume할 pth 경로]
