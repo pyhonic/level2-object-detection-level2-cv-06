@@ -43,6 +43,7 @@
 | 2-Stage | Faster R-CNN | Swin-L | 0.6344 | 0.6199 | 
 | Ensemble | Swin-L, YOLOv5-L | | 0.6841 | 0.6680 | 
 
+- [실험 노션](https://overjoyed-exoplanet-127.notion.site/79557585126a4f7e80deaf482566cce7?v=8bb209b39c0a4f24a4600e91380ade73)
 
 ## Reference
 - [MMDetection](https://github.com/open-mmlab/mmdetection)
