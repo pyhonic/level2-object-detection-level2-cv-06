@@ -15,9 +15,9 @@
 - 따라서 우리는 사진에서 쓰레기를 Detection 하는 모델을 만들어 이러한 문제점을 해결해보고자 합니다. 
 
 ### 💾 데이터 셋
-- 전체 이미지 개수 : 9754장 (train 4883 장, test 4871 장)
-- 10개 클래스 : General trash, Paper, Paper pack, Metal, Glass, Plastic, Styrofoam, Plastic bag, Battery, Clothing
-- 이미지 크기 : (1024, 1024)
+- `전체 이미지 개수` : 9754장 (train 4883 장, test 4871 장)
+- `10개 클래스` : General trash, Paper, Paper pack, Metal, Glass, Plastic, Styrofoam, Plastic bag, Battery, Clothing
+- `이미지 크기` : (1024, 1024)
 
 
 ## 🙂 멤버
@@ -37,7 +37,12 @@
 
 
 ## 🧪 실험
-[Notion](https://overjoyed-exoplanet-127.notion.site/79557585126a4f7e80deaf482566cce7?v=8bb209b39c0a4f24a4600e91380ade73)
+|Property|Model|Backbone|mAP@public|mAP@private|
+| :-: | :-: | :-: | :-: | :-: | 
+| 1-Stage | YOLOv5-L | CSPDarkNet | 0.5287 | 0.5014 | 
+| 2-Stage | Faster R-CNN | Swin-L | 0.6344 | 0.6199 | 
+| Ensemble | Swin-L, YOLOv5-L | | 0.6841 | 0.6680 | 
+
 
 ## Reference
 - [MMDetection](https://github.com/open-mmlab/mmdetection)
